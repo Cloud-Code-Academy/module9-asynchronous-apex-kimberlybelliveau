@@ -27,9 +27,21 @@ public with sharing class NextStepFuture {
      * Opportunity Next Step field is a standard field
      * Update the corresponding test class AsynchronousTest and test method nextStepFuture_testUpdateAllNextStep to cover test this method
      */
-    //[public | private ] [static] data_type method_name (input parameters) {
-    //  The body of the method
-    //}
+    @future
+    public static void updateAllNextStep(List<Id> recordIds) {
+    
+        List<Account> accounts = [SELECT Id, Next_Step__c FROM Account WHERE Id IN :recordIds];
+        for (Account acc : accounts){
+            acc.Next_Step__c = 'Meeting in the future';
+        }
+        update accounts;
+
+        List<Opportunity> opps = [SELECT Id, NextStep FROM Opportunity WHERE Id IN :recordIds];
+        for (Opportunity opp : opps){
+            opp.NextStep = 'Meeting in the future';
+        }
+        update opps;
+    }
 
     /*
     * Question 2
@@ -43,7 +55,13 @@ public with sharing class NextStepFuture {
         insertBigDeal(bigDeal);
 
         UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
-        updateUserRoleName(roles);
+    
+        List<Id> roleIds = new List<Id>();
+        for (UserRole role : roles) {
+            roleIds.add(role.Id);
+        }
+
+        updateUserRoleName(roleIds);
     }
 
     // Helper method to insert big deal
@@ -56,9 +74,12 @@ public with sharing class NextStepFuture {
         insert opp;
     }
 
-
     // Helper method to update role name
-    private static void updateUserRoleName(UserRole[] roles){
+    @future
+    private static void updateUserRoleName(List<Id> roleIds){
+    
+        UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id IN :roleIds];
+
         UserRole role;
         if (roles.isEmpty()) {
             role = new UserRole();
